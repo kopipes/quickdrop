@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+backend/.venv/
+__pycache__/
+*.pyc
+
+# Build output
+frontend/.next/
+frontend/out/
+frontend/dist/
+
+# Runtime data (never commit user files or the DB)
+backend/data/
+backend/tmp/
+backend/*.db
+backend/*.db-wal
+backend/*.db-shm
+
+# Env
+.env
+.env.local
+.env*.local
+
+# OS
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
