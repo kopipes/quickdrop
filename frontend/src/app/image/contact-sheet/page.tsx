@@ -18,6 +18,7 @@ const GRID_OPTIONS = [
 
 export default function ContactSheetPage() {
   const [pg, setPg] = useState('a4');
+  const [orientation, setOrientation] = useState('portrait');
   const [grid, setGrid] = useState(GRID_OPTIONS[1]);
 
   return (
@@ -25,7 +26,7 @@ export default function ContactSheetPage() {
       tool="contact_sheet" title="Contact Sheet" description="Arrange multiple images into a printable PDF grid."
       accept=".jpg,.jpeg,.png,.webp" multiple maxSize={MAX_IMAGE} maxFiles={500}
       resultTitle="Contact sheet ready" processLabel="Create Contact Sheet"
-      buildOptions={() => ({ columns: grid.cols, rows: grid.rows, spacing: 8, labels: true, page_size: pg })}
+      buildOptions={() => ({ columns: grid.cols, rows: grid.rows, spacing: 8, labels: true, page_size: pg, orientation })}
       settings={
         <div className="space-y-4">
           <div className="space-y-2">
@@ -33,6 +34,14 @@ export default function ContactSheetPage() {
             <div className="flex gap-1 rounded-xl bg-neutral-100 p-1">
               {PAGE_SIZES.map((s) => (
                 <button key={s.value} onClick={() => setPg(s.value)} className={`flex-1 rounded-lg px-2 py-1.5 text-xs font-medium transition-colors ${pg === s.value ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-700'}`}>{s.label}</button>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-neutral-700">Orientation</label>
+            <div className="flex gap-1 rounded-xl bg-neutral-100 p-1">
+              {[['portrait', 'Portrait'], ['landscape', 'Landscape']].map(([v, l]) => (
+                <button key={v} onClick={() => setOrientation(v)} className={`flex-1 rounded-lg px-2 py-1.5 text-xs font-medium transition-colors ${orientation === v ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-700'}`}>{l}</button>
               ))}
             </div>
           </div>

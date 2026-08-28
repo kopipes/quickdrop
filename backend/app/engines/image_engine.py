@@ -71,7 +71,7 @@ def make_zip(files: list[Path], zip_path: Path):
 
 def contact_sheet(image_paths: list[Path], output_path: Path, columns: int = 3,
                   rows: int = 4, spacing: int = 8, labels: bool = True,
-                  page_size: str = "a4"):
+                  page_size: str = "a4", orientation: str = "portrait"):
     """Arrange images into a grid on one or more PDF pages (contact sheet)."""
     import fitz
 
@@ -85,6 +85,8 @@ def contact_sheet(image_paths: list[Path], output_path: Path, columns: int = 3,
         "letter": (612.0, 792.0),
     }
     page_w, page_h = sizes.get(page_size, sizes["a4"])
+    if orientation == "landscape":
+        page_w, page_h = page_h, page_w
     margin = 40
     spacing_pt = max(0, int(spacing)) * 72 / 96
     label_h = 14 if labels else 0
