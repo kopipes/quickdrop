@@ -62,6 +62,7 @@ TOOL_CATEGORIES = {
     },
     "quick": {
         "qr": "qr_generator",
+        "favicon-generator": "favicon_generator",
     },
     "image": {
         "resize": "resize_image",

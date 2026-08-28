@@ -14,6 +14,7 @@ from app.engines.presentation_engine import shrink_presentation, pptx_to_pdf, pp
 from app.engines.watermark_engine import watermark_pdf, watermark_presentation
 from app.engines.image_engine import resize_image, contact_sheet
 from app.engines.pptx_engine import images_to_pptx
+from app.engines.favicon_engine import generate_favicon
 from app.engines.smaller_engine import make_it_smaller, resolve_target
 
 logger = logging.getLogger("worker")
@@ -131,6 +132,7 @@ def _register_handlers():
     _register("resize_image", _handle_resize_image)
     _register("contact_sheet", _handle_contact_sheet)
     _register("images_to_pptx", _handle_images_to_pptx)
+    _register("favicon_generator", _handle_favicon_generator)
     _register("make_it_smaller", _handle_make_it_smaller)
 
 
@@ -357,6 +359,13 @@ def _handle_images_to_pptx(job_id, input_path, all_inputs, output_dir, job):
     out = output_dir / "presentation.pptx"
     images_to_pptx(all_inputs, out)
     return {"output_size": out.stat().st_size, "filename": "presentation.pptx", "output_format": "pptx"}
+
+
+def _handle_favicon_generator(job_id, input_path, all_inputs, output_dir, job):
+    if not input_path:
+        raise EngineError("No image found.", "QD-FAVICON-NONE")
+    zip_path = generate_favicon(input_path, output_dir)
+    return {"output_size": zip_path.stat().st_size, "filename": "favicon-pack.zip", "output_format": "zip"}
 
 
 def _handle_make_it_smaller(job_id, input_path, all_inputs, output_dir, job):

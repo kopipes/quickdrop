@@ -40,6 +40,7 @@ TOOL_INPUT_TYPES = {
     "resize_image": "image",
     "contact_sheet": "image",
     "images_to_pptx": "image",
+    "favicon_generator": "image",
     "make_it_smaller": "image",
 }
 

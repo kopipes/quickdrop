@@ -38,6 +38,7 @@ export const TOOLS: ToolDef[] = [
   { id: 'dummy_text', path: '/dummy-text', name: 'Lorem / Dummy Generator', description: 'Generate placeholder text, names, emails, and dummy data.', category: 'Quick', keywords: ['lorem', 'ipsum', 'dummy', 'placeholder', 'text', 'fake', 'data', 'random', 'names', 'emails'], accept: '', maxSize: 0 },
   { id: 'text_cleaner', path: '/text-cleaner', name: 'Text Cleaner', description: 'Remove unwanted formatting, tags, and characters from text.', category: 'Quick', keywords: ['text', 'clean', 'format', 'whitespace', 'html', 'tags', 'quotes', 'case', 'trim'], accept: '', maxSize: 0 },
   { id: 'hex_to_pantone', path: '/color/hex-to-pantone', name: 'Hex → Pantone', description: 'Find the closest Pantone-style color to any hex value.', category: 'Quick', keywords: ['pantone', 'color', 'hex', 'convert', 'match', 'pms', 'swatch'], accept: '', maxSize: 0 },
+  { id: 'favicon_generator', path: '/quick/favicon-generator', name: 'Favicon Generator', description: 'Turn any image into a favicon pack — .ico + all PNG sizes in one ZIP.', category: 'Quick', keywords: ['favicon', 'ico', 'icon', 'logo', 'generate', 'png', 'pwa'], accept: '.jpg,.jpeg,.png,.webp', maxSize: MAX_IMAGE },
 ];
 
 export const CATEGORY_ORDER = ['Make It Smaller', 'PDF', 'Presentation', 'Watermark', 'Image', 'Quick'];
