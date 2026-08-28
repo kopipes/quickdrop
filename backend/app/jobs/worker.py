@@ -12,7 +12,7 @@ from app.engines.pdf_engine import (
 )
 from app.engines.presentation_engine import shrink_presentation, pptx_to_pdf, pptx_to_images
 from app.engines.watermark_engine import watermark_pdf, watermark_presentation
-from app.engines.image_engine import resize_image
+from app.engines.image_engine import resize_image, contact_sheet
 from app.engines.smaller_engine import make_it_smaller, resolve_target
 
 logger = logging.getLogger("worker")
@@ -128,6 +128,7 @@ def _register_handlers():
     _register("watermark_pdf", _handle_watermark_pdf)
     _register("watermark_presentation", _handle_watermark_presentation)
     _register("resize_image", _handle_resize_image)
+    _register("contact_sheet", _handle_contact_sheet)
     _register("make_it_smaller", _handle_make_it_smaller)
 
 
@@ -329,6 +330,20 @@ def _handle_resize_image(job_id, input_path, all_inputs, output_dir, job):
     out = output_dir / f"resized{ext}"
     resize_image(input_path, out, width, height, percentage, max_dimension, quality)
     return {"output_size": out.stat().st_size, "filename": f"resized{ext}", "output_format": ext.lstrip(".")}
+
+
+def _handle_contact_sheet(job_id, input_path, all_inputs, output_dir, job):
+    params = _params(job)
+    columns = params.get("columns", 3)
+    rows = params.get("rows", 4)
+    spacing = params.get("spacing", 8)
+    labels = params.get("labels", True)
+    page_size = params.get("page_size", "a4")
+    if len(all_inputs) < 1:
+        raise EngineError("Please upload at least one image.", "QD-SHEET-NONE")
+    out = output_dir / "contact-sheet.pdf"
+    contact_sheet(all_inputs, out, columns, rows, spacing, labels, page_size)
+    return {"output_size": out.stat().st_size, "filename": "contact-sheet.pdf", "output_format": "pdf"}
 
 
 def _handle_make_it_smaller(job_id, input_path, all_inputs, output_dir, job):

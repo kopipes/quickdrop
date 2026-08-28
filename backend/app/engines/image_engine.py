@@ -67,3 +67,70 @@ def make_zip(files: list[Path], zip_path: Path):
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
         for f in files:
             zf.write(f, arcname=f.name)
+
+
+def contact_sheet(image_paths: list[Path], output_path: Path, columns: int = 3,
+                  rows: int = 4, spacing: int = 8, labels: bool = True,
+                  page_size: str = "a4"):
+    """Arrange images into a grid on one or more PDF pages (contact sheet)."""
+    import fitz
+
+    if columns < 1 or rows < 1:
+        raise EngineError("Columns and rows must be at least 1.", "QD-SHEET-GRID")
+    if not image_paths:
+        raise EngineError("No images to arrange.", "QD-SHEET-NONE")
+
+    sizes = {
+        "a4": (595.0, 842.0),
+        "letter": (612.0, 792.0),
+    }
+    page_w, page_h = sizes.get(page_size, sizes["a4"])
+    margin = 40
+    spacing_pt = max(0, int(spacing)) * 72 / 96
+    label_h = 14 if labels else 0
+
+    doc = fitz.open()
+    per_page = columns * rows
+    total_pages = (len(image_paths) + per_page - 1) // per_page
+
+    for p in range(total_pages):
+        page = doc.new_page(width=page_w, height=page_h)
+        if labels:
+            page.draw_rect(
+                fitz.Rect(0, 0, page_w, page_h),
+                color=(0, 0, 0), width=0, fill=(1, 1, 1),
+            )
+        batch = image_paths[p * per_page:(p + 1) * per_page]
+        usable_w = page_w - 2 * margin
+        usable_h = page_h - 2 * margin - (rows * label_h)
+        cell_w = (usable_w - (columns - 1) * spacing_pt) / columns
+        cell_h = (usable_h - (rows - 1) * spacing_pt) / rows
+
+        for idx, path in enumerate(batch):
+            row, col = divmod(idx, columns)
+            try:
+                with Image.open(path) as im:
+                    im = im.convert("RGB")
+                    img_w, img_h = im.size
+                scale = min(cell_w / img_w, (cell_h - label_h) / img_h)
+                draw_w = img_w * scale
+                draw_h = img_h * scale
+                x = margin + col * (cell_w + spacing_pt) + (cell_w - draw_w) / 2
+                y = margin + row * (cell_h + spacing_pt + label_h) + (cell_h - label_h - draw_h) / 2
+                page.insert_image(
+                    fitz.Rect(x, y, x + draw_w, y + draw_h),
+                    filename=str(path),
+                )
+                if labels:
+                    page.insert_text(
+                        fitz.Point(margin + col * (cell_w + spacing_pt), y + draw_h + 10),
+                        path.stem[:40],
+                        fontsize=8,
+                        color=(0.25, 0.25, 0.25),
+                    )
+            except Exception:
+                continue
+    doc.save(output_path, garbage=4, deflate=True)
+    doc.close()
+    if output_path.stat().st_size == 0:
+        raise EngineError("Failed to build the contact sheet.", "QD-SHEET-OUT")

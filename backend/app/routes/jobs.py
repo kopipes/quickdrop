@@ -38,6 +38,7 @@ TOOL_INPUT_TYPES = {
     "watermark_pdf": "pdf",
     "watermark_presentation": "pptx",
     "resize_image": "image",
+    "contact_sheet": "image",
     "make_it_smaller": "image",
 }
 

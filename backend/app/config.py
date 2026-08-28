@@ -64,6 +64,7 @@ TOOL_CATEGORIES = {
     },
     "image": {
         "resize": "resize_image",
+        "contact-sheet": "contact_sheet",
     },
     "make-smaller": {
         "make-it-smaller": "make_it_smaller",
