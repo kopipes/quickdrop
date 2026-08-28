@@ -5,7 +5,10 @@ import uuid
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
-from app.db.database import get_conn, upsert_visitor, active_visitor_count, prune_visitors
+from app.db.database import (
+    get_conn, upsert_visitor, active_visitor_count, prune_visitors,
+    get_total_page_views, increment_page_views,
+)
 
 router = APIRouter(prefix="/api", tags=["health"])
 
@@ -19,20 +22,24 @@ async def health():
 
 @router.get("/visitors")
 async def visitors(request: Request):
-    """Heartbeat + live count of active visitors (prune occurs periodically by the cleanup loop)."""
+    """Heartbeat + live active count + total cumulative page views."""
     vid = request.cookies.get("qd_visitor")
+    total = get_total_page_views()
     if not vid:
         vid = uuid.uuid4().hex
-    upsert_visitor(vid)
+        upsert_visitor(vid)
+        total = increment_page_views(1)
+    else:
+        upsert_visitor(vid)
     count = active_visitor_count()
-    # Prune every ~30s to keep the count fresh (throttled with a lock)
+    # Prune periodically to keep the count fresh (throttled with a lock)
     async with _heartbeat_lock:
         try:
             prune_visitors(2)
             count = active_visitor_count()
         except Exception:
             pass
-    response = JSONResponse({"active": count, "visitor": vid})
+    response = JSONResponse({"active": count, "total": total, "visitor": vid})
     response.set_cookie(
         key="qd_visitor",
         value=vid,

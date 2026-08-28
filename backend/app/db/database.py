@@ -82,6 +82,13 @@ def init_db():
                 last_seen TEXT NOT NULL
             );
 
+            CREATE TABLE IF NOT EXISTS app_meta (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+            );
+
+            INSERT OR IGNORE INTO app_meta (key, value) VALUES ('total_page_views', '0');
+
             CREATE INDEX IF NOT EXISTS idx_visitors_last_seen ON visitors(last_seen);
 
             CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status);
@@ -200,6 +207,23 @@ def active_visitor_count(active_minutes: int = 2) -> int:
     conn = get_conn()
     row = conn.execute("SELECT COUNT(*) AS c FROM visitors WHERE last_seen >= ?", (cutoff,)).fetchone()
     return row["c"] if row else 0
+
+
+def get_total_page_views() -> int:
+    conn = get_conn()
+    row = conn.execute("SELECT value FROM app_meta WHERE key = 'total_page_views'").fetchone()
+    return int(row["value"]) if row else 0
+
+
+def increment_page_views(by: int = 1) -> int:
+    with db_cursor() as cur:
+        cur.execute(
+            "INSERT INTO app_meta (key, value) VALUES ('total_page_views', ?) "
+            "ON CONFLICT(key) DO UPDATE SET value = CAST(value AS INTEGER) + ?",
+            (str(by), by),
+        )
+        cur.execute("SELECT value FROM app_meta WHERE key = 'total_page_views'")
+        return int(cur.fetchone()["value"])
 
 
 def expire_jobs():
