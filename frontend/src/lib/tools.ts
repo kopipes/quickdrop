@@ -30,6 +30,7 @@ export const TOOLS: ToolDef[] = [
   { id: 'watermark_pdf', path: '/watermark/pdf', name: 'Watermark PDF', description: 'Add a text or image watermark to PDF.', category: 'Watermark', keywords: ['watermark', 'pdf', 'draft', 'confidential', 'stamp'], accept: '.pdf', maxSize: MAX_PDF },
   { id: 'watermark_presentation', path: '/watermark/presentation', name: 'Watermark Presentation', description: 'Add a watermark to every slide.', category: 'Watermark', keywords: ['watermark', 'pptx', 'powerpoint', 'draft', 'confidential'], accept: '.pptx', maxSize: MAX_PPTX },
   { id: 'resize_image', path: '/image/resize', name: 'Resize Image', description: 'Resize, scale, or convert your images.', category: 'Image', keywords: ['resize', 'scale', 'image', 'photo', 'convert', 'jpg', 'png', 'webp'], accept: '.jpg,.jpeg,.png,.webp', multiple: true, maxSize: MAX_IMAGE },
+  { id: 'remove_background', path: '/image/remove-bg', name: 'Remove Background', description: 'Erase the background from any image with AI — in your browser.', category: 'Image', keywords: ['remove', 'background', 'erase', 'ai', 'image', 'photo', 'transparent', 'cutout'], accept: '.jpg,.jpeg,.png,.webp', maxSize: MAX_IMAGE },
   { id: 'qr_generator', path: '/qr', name: 'QR Generator', description: 'Create QR codes from URLs and text.', category: 'Quick', keywords: ['qr', 'code', 'generate', 'url', 'barcode'], accept: '', maxSize: 0 },
 ];
 
