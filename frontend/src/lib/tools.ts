@@ -32,6 +32,7 @@ export const TOOLS: ToolDef[] = [
   { id: 'resize_image', path: '/image/resize', name: 'Resize Image', description: 'Resize, scale, or convert your images.', category: 'Image', keywords: ['resize', 'scale', 'image', 'photo', 'convert', 'jpg', 'png', 'webp'], accept: '.jpg,.jpeg,.png,.webp', multiple: true, maxSize: MAX_IMAGE },
   { id: 'remove_background', path: '/image/remove-bg', name: 'Remove Background', description: 'Erase the background from any image with AI — in your browser.', category: 'Image', keywords: ['remove', 'background', 'erase', 'ai', 'image', 'photo', 'transparent', 'cutout'], accept: '.jpg,.jpeg,.png,.webp', maxSize: MAX_IMAGE },
   { id: 'qr_generator', path: '/qr', name: 'QR Generator', description: 'Create QR codes from URLs and text.', category: 'Quick', keywords: ['qr', 'code', 'generate', 'url', 'barcode'], accept: '', maxSize: 0 },
+  { id: 'dummy_text', path: '/dummy-text', name: 'Lorem / Dummy Generator', description: 'Generate placeholder text, names, emails, and dummy data.', category: 'Quick', keywords: ['lorem', 'ipsum', 'dummy', 'placeholder', 'text', 'fake', 'data', 'random', 'names', 'emails'], accept: '', maxSize: 0 },
 ];
 
 export const CATEGORY_ORDER = ['Make It Smaller', 'PDF', 'Presentation', 'Watermark', 'Image', 'Quick'];
