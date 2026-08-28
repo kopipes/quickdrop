@@ -21,6 +21,18 @@ export async function getJobStatus(jobId: string): Promise<JobStatus> {
   return res.json();
 }
 
+export async function getPdfPageCount(file: File): Promise<number> {
+  const form = new FormData();
+  form.append('files', file);
+  const res = await fetch(`${API_BASE}/api/pdf/pages`, { method: 'POST', body: form });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: `HTTP ${res.status}` }));
+    throw new Error(err.detail || 'Failed to read PDF');
+  }
+  const data = await res.json();
+  return data.pages as number;
+}
+
 export function getDownloadUrl(jobId: string, filename: string): string {
   return `${API_BASE}/api/jobs/${jobId}/download/${filename}`;
 }

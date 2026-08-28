@@ -4,8 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { PageLayout } from '@/components/ToolShell';
 import { MAX_PDF } from '@/lib/tools';
 import { useProcess } from '@/lib/useProcess';
-import { getDownloadUrl } from '@/lib/api';
-import ProcessingState from '@/components/ProcessingState';
+import { getDownloadUrl, getPdfPageCount } from '@/lib/api';
 import ResultCard from '@/components/ResultCard';
 import ErrorCard from '@/components/ErrorCard';
 import DropZone from '@/components/DropZone';
@@ -15,29 +14,17 @@ export default function ReorderPDFPage() {
   const [docFile, setDocFile] = useState<File | null>(null);
   const [pages, setPages] = useState<number[]>([]);
   const [loadingPages, setLoadingPages] = useState(false);
+  const [pageError, setPageError] = useState<string | null>(null);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
 
   useEffect(() => {
     if (!docFile) return;
     setLoadingPages(true);
-    const reader = new FileReader();
-    reader.onload = async () => {
-      try {
-        const pdfjs = await import('pdfjs-dist');
-        const worker = await import('pdfjs-dist/build/pdf.worker.min.mjs?url');
-        pdfjs.GlobalWorkerOptions.workerSrc = worker as unknown as string;
-        const data = new Uint8Array(reader.result as ArrayBuffer);
-        const doc = await pdfjs.getDocument({ data }).promise;
-        const n = doc.numPages;
-        setPages(Array.from({ length: n }, (_, i) => i + 1));
-        await doc.cleanup();
-      } catch (e) {
-        console.error('Failed to parse PDF', e);
-        setPages([1, 2, 3, 4, 5]);
-      }
-      setLoadingPages(false);
-    };
-    reader.readAsArrayBuffer(docFile);
+    setPageError(null);
+    getPdfPageCount(docFile)
+      .then((n) => setPages(Array.from({ length: n }, (_, i) => i + 1)))
+      .catch((e) => setPageError(e.message))
+      .finally(() => setLoadingPages(false));
   }, [docFile]);
 
   const movePage = (from: number, to: number) => {
@@ -58,12 +45,13 @@ export default function ReorderPDFPage() {
     reset();
     setDocFile(null);
     setPages([]);
+    setPageError(null);
   };
 
   if (state.stage === 'processing') {
     return (
       <PageLayout title="Reorder PDF" description="Rearrange PDF pages by dragging them into order.">
-        <ProcessingState message="Reordering pages…" />
+        <div className="text-center text-sm text-neutral-500 py-8">Reordering pages…</div>
       </PageLayout>
     );
   }
@@ -103,11 +91,13 @@ export default function ReorderPDFPage() {
                   <div className="text-xs text-neutral-500">{Math.round(docFile.size / 1024 / 1024 * 10) / 10} MB</div>
                 </div>
               </div>
-              <button onClick={() => setDocFile(null)} className="rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600">✕</button>
+              <button onClick={() => { setDocFile(null); setPages([]); setPageError(null); }} className="rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600">✕</button>
             </div>
 
             {loadingPages ? (
               <div className="text-center text-sm text-neutral-500 py-4">Reading page count…</div>
+            ) : pageError ? (
+              <div className="text-center text-sm text-red-500 py-4">{pageError}</div>
             ) : pages.length > 0 ? (
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">

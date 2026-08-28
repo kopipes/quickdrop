@@ -8,6 +8,7 @@ from app.db.database import init_db, mark_interrupted
 from app.routes.jobs import router as jobs_router
 from app.routes.download import router as download_router
 from app.routes.health import router as health_router
+from app.routes.pdf import router as pdf_router
 from app.jobs.worker import worker_loop
 from app.services.cleanup import cleanup_loop
 from app.config import TOOL_CATEGORIES, ALLOWED_ORIGINS
@@ -45,6 +46,7 @@ app.add_middleware(
 app.include_router(jobs_router)
 app.include_router(download_router)
 app.include_router(health_router)
+app.include_router(pdf_router)
 
 
 @app.get("/api/tools")
