@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import ToolSearch from "@/components/ToolSearch";
 import { TOOLS, CATEGORY_ORDER, getTool } from "@/lib/tools";
+import { useToolAnalytics } from "@/lib/useToolAnalytics";
+import { recordToolClick } from "@/lib/api";
 
 function ToolIcon({ category, id }: { category: string; id: string }) {
   const color =
@@ -81,6 +83,7 @@ function ToolIcon({ category, id }: { category: string; id: string }) {
 
 export default function HomePage() {
   const [recent, setRecent] = useState<string[]>([]);
+  const { counts } = useToolAnalytics();
 
   useEffect(() => {
     try {
@@ -138,9 +141,17 @@ export default function HomePage() {
                   <Link
                     key={tool.id}
                     href={tool.path}
+                    onClick={() => recordToolClick(tool.id)}
                     className="group flex flex-col gap-3 rounded-2xl border border-neutral-200/80 bg-white p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md"
                   >
-                    <ToolIcon category={tool.category} id={tool.id} />
+                    <div className="flex items-center justify-between">
+                      <ToolIcon category={tool.category} id={tool.id} />
+                      {counts[tool.id] !== undefined && (
+                        <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-500">
+                          {counts[tool.id].toLocaleString()} uses
+                        </span>
+                      )}
+                    </div>
                     <div>
                       <div className="text-[15px] font-semibold text-neutral-900">
                         {tool.name}

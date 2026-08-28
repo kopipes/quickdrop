@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from app.db.database import (
     get_conn, upsert_visitor, active_visitor_count, prune_visitors,
     get_total_page_views, increment_page_views,
+    increment_tool_click, get_tool_click_counts,
 )
 
 router = APIRouter(prefix="/api", tags=["health"])
@@ -49,6 +50,18 @@ async def visitors(request: Request):
         secure=False,
     )
     return response
+
+
+@router.get("/tool-clicks")
+async def tool_clicks():
+    """Return cumulative click counts per tool id."""
+    return {"clicks": get_tool_click_counts()}
+
+
+@router.post("/tool-clicks/{tool_id}")
+async def record_tool_click(tool_id: str):
+    count = increment_tool_click(tool_id)
+    return {"tool": tool_id, "clicks": count}
 
 
 @router.get("/stats")

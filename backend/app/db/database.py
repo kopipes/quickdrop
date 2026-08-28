@@ -226,6 +226,26 @@ def increment_page_views(by: int = 1) -> int:
         return int(cur.fetchone()["value"])
 
 
+def increment_tool_click(tool_id: str) -> int:
+    key = f"tool_clicks:{tool_id}"
+    with db_cursor() as cur:
+        cur.execute(
+            "INSERT INTO app_meta (key, value) VALUES (?, '1') "
+            "ON CONFLICT(key) DO UPDATE SET value = CAST(value AS INTEGER) + 1",
+            (key,),
+        )
+        cur.execute("SELECT value FROM app_meta WHERE key = ?", (key,))
+        return int(cur.fetchone()["value"])
+
+
+def get_tool_click_counts() -> dict:
+    conn = get_conn()
+    rows = conn.execute(
+        "SELECT key, value FROM app_meta WHERE key LIKE 'tool_clicks:%'"
+    ).fetchall()
+    return {r["key"].split(":", 1)[1]: int(r["value"]) for r in rows}
+
+
 def expire_jobs():
     import datetime
     now = datetime.datetime.utcnow().isoformat()

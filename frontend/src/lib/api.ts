@@ -33,6 +33,21 @@ export async function getPdfPageCount(file: File): Promise<number> {
   return data.pages as number;
 }
 
+export async function recordToolClick(toolId: string): Promise<void> {
+  try {
+    await fetch(`${API_BASE}/api/tool-clicks/${encodeURIComponent(toolId)}`, { method: 'POST' });
+  } catch {
+    // ignore; analytics should never block navigation
+  }
+}
+
+export async function getToolClickCounts(): Promise<Record<string, number>> {
+  const res = await fetch(`${API_BASE}/api/tool-clicks`);
+  if (!res.ok) return {};
+  const data = await res.json();
+  return (data.clicks as Record<string, number>) || {};
+}
+
 export function getDownloadUrl(jobId: string, filename: string): string {
   return `${API_BASE}/api/jobs/${jobId}/download/${filename}`;
 }
