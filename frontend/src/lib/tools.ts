@@ -34,6 +34,7 @@ export const TOOLS: ToolDef[] = [
   { id: 'contact_sheet', path: '/image/contact-sheet', name: 'Contact Sheet', description: 'Arrange many images into a printable PDF grid.', category: 'Image', keywords: ['contact', 'sheet', 'grid', 'proof', 'photos', 'thumbnails', 'layout', 'pdf'], accept: '.jpg,.jpeg,.png,.webp', multiple: true, maxSize: MAX_IMAGE },
   { id: 'qr_generator', path: '/qr', name: 'QR Generator', description: 'Create QR codes from URLs and text.', category: 'Quick', keywords: ['qr', 'code', 'generate', 'url', 'barcode'], accept: '', maxSize: 0 },
   { id: 'dummy_text', path: '/dummy-text', name: 'Lorem / Dummy Generator', description: 'Generate placeholder text, names, emails, and dummy data.', category: 'Quick', keywords: ['lorem', 'ipsum', 'dummy', 'placeholder', 'text', 'fake', 'data', 'random', 'names', 'emails'], accept: '', maxSize: 0 },
+  { id: 'text_cleaner', path: '/text-cleaner', name: 'Text Cleaner', description: 'Remove unwanted formatting, tags, and characters from text.', category: 'Quick', keywords: ['text', 'clean', 'format', 'whitespace', 'html', 'tags', 'quotes', 'case', 'trim'], accept: '', maxSize: 0 },
 ];
 
 export const CATEGORY_ORDER = ['Make It Smaller', 'PDF', 'Presentation', 'Watermark', 'Image', 'Quick'];
