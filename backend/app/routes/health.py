@@ -1,17 +1,47 @@
+import asyncio
 import datetime
+import uuid
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
-from app.db.database import get_conn
-from app.config import TEMP_DIR
+from app.db.database import get_conn, upsert_visitor, active_visitor_count, prune_visitors
 
 router = APIRouter(prefix="/api", tags=["health"])
+
+_heartbeat_lock = asyncio.Lock()
 
 
 @router.get("/health")
 async def health():
     return {"status": "ok", "time": datetime.datetime.utcnow().isoformat()}
+
+
+@router.get("/visitors")
+async def visitors(request: Request):
+    """Heartbeat + live count of active visitors (prune occurs periodically by the cleanup loop)."""
+    vid = request.cookies.get("qd_visitor")
+    if not vid:
+        vid = uuid.uuid4().hex
+    upsert_visitor(vid)
+    count = active_visitor_count()
+    # Prune every ~30s to keep the count fresh (throttled with a lock)
+    async with _heartbeat_lock:
+        try:
+            prune_visitors(2)
+            count = active_visitor_count()
+        except Exception:
+            pass
+    response = JSONResponse({"active": count, "visitor": vid})
+    response.set_cookie(
+        key="qd_visitor",
+        value=vid,
+        max_age=60 * 60 * 24 * 365,
+        httponly=True,
+        samesite="lax",
+        secure=False,
+    )
+    return response
 
 
 @router.get("/stats")

@@ -77,6 +77,13 @@ def init_db():
                 created_at TEXT NOT NULL
             );
 
+            CREATE TABLE IF NOT EXISTS visitors (
+                visitor_id TEXT PRIMARY KEY,
+                last_seen TEXT NOT NULL
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_visitors_last_seen ON visitors(last_seen);
+
             CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status);
             CREATE INDEX IF NOT EXISTS idx_jobs_created ON jobs(created_at);
             CREATE INDEX IF NOT EXISTS idx_jobs_expires ON jobs(expires_at);
@@ -165,6 +172,34 @@ def log_event(event_type: str, message: str, severity: str = "info"):
             "INSERT INTO system_events (event_type, severity, message, created_at) VALUES (?, ?, ?, ?)",
             (event_type, severity, message, datetime.datetime.utcnow().isoformat()),
         )
+
+
+def upsert_visitor(visitor_id: str):
+    import datetime
+    now = datetime.datetime.utcnow().isoformat()
+    with db_cursor() as cur:
+        cur.execute(
+            "INSERT INTO visitors (visitor_id, last_seen) VALUES (?, ?) "
+            "ON CONFLICT(visitor_id) DO UPDATE SET last_seen = excluded.last_seen",
+            (visitor_id, now),
+        )
+
+
+def prune_visitors(active_minutes: int = 2):
+    import datetime
+    cutoff = (datetime.datetime.utcnow() - datetime.timedelta(minutes=active_minutes)).isoformat()
+    with db_cursor() as cur:
+        cur.execute("DELETE FROM visitors WHERE last_seen < ?", (cutoff,))
+        cur.execute("SELECT COUNT(*) AS c FROM visitors")
+        return cur.fetchone()["c"]
+
+
+def active_visitor_count(active_minutes: int = 2) -> int:
+    import datetime
+    cutoff = (datetime.datetime.utcnow() - datetime.timedelta(minutes=active_minutes)).isoformat()
+    conn = get_conn()
+    row = conn.execute("SELECT COUNT(*) AS c FROM visitors WHERE last_seen >= ?", (cutoff,)).fetchone()
+    return row["c"] if row else 0
 
 
 def expire_jobs():

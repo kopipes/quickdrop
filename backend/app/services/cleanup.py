@@ -2,7 +2,7 @@ import asyncio
 import datetime
 import logging
 
-from app.db.database import expire_jobs, mark_interrupted, get_conn
+from app.db.database import expire_jobs, mark_interrupted, get_conn, prune_visitors
 from app.config import CLEANUP_INTERVAL_SECONDS
 from app.services.storage import cleanup_job
 
@@ -33,3 +33,7 @@ def run_cleanup():
     ).fetchall()
     for row in rows:
         cleanup_job(row["id"])
+    try:
+        prune_visitors(2)
+    except Exception as e:
+        logger.error("prune_visitors error: %s", e)
