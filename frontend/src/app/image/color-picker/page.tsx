@@ -48,6 +48,15 @@ export default function ColorPickerPage() {
     const rect = canvas.getBoundingClientRect();
     const x = Math.floor(((e.clientX - rect.left) / rect.width) * canvas.width);
     const y = Math.floor(((e.clientY - rect.top) / rect.height) * canvas.height);
+    setCursor({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  }, []);
+
+  const handleClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = Math.floor(((e.clientX - rect.left) / rect.width) * canvas.width);
+    const y = Math.floor(((e.clientY - rect.top) / rect.height) * canvas.height);
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) return;
     const data = ctx.getImageData(x, y, 1, 1).data;
@@ -91,6 +100,7 @@ export default function ColorPickerPage() {
               <canvas
                 ref={canvasRef}
                 onMouseMove={handleMove}
+                onClick={handleClick}
                 className="h-auto max-h-[480px] w-full cursor-crosshair object-contain"
               />
               {cursor && (
@@ -100,6 +110,7 @@ export default function ColorPickerPage() {
                 />
               )}
             </div>
+            <p className="text-center text-xs text-neutral-400">Click any pixel to pick its color — it stays until you click another pixel.</p>
 
             {color && (
               <div className="flex items-center gap-4 rounded-2xl border border-primary/30 bg-primary/5 p-5">
