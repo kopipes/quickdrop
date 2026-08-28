@@ -270,6 +270,7 @@ def _handle_watermark_pdf(job_id, input_path, all_inputs, output_dir, job):
     rotation = params.get("rotation", 0)
     apply_to = params.get("apply_to", "all")
     selected_pages = params.get("selected_pages")
+    style = params.get("style", "single")
     if not input_path:
         raise EngineError("No input file found.", "QD-UPLOAD")
     if not input_path.suffix.lower() == ".pdf":
@@ -283,7 +284,7 @@ def _handle_watermark_pdf(job_id, input_path, all_inputs, output_dir, job):
         if not image_bytes:
             raise EngineError("No watermark image found.", "QD-WATERMARK-IMG")
     out = output_dir / "watermarked.pdf"
-    watermark_pdf(input_path, out, wm_type, text, image_bytes, position, opacity, size, rotation, apply_to, selected_pages)
+    watermark_pdf(input_path, out, wm_type, text, image_bytes, position, opacity, size, rotation, apply_to, selected_pages, style)
     return {"output_size": out.stat().st_size, "filename": "watermarked.pdf", "output_format": "pdf"}
 
 
@@ -297,6 +298,7 @@ def _handle_watermark_presentation(job_id, input_path, all_inputs, output_dir, j
     rotation = params.get("rotation", 0)
     apply_to = params.get("apply_to", "all")
     selected_slides = params.get("selected_slides")
+    style = params.get("style", "single")
     if not input_path:
         raise EngineError("No input file found.", "QD-UPLOAD")
     if not input_path.suffix.lower() == ".pptx":
@@ -310,7 +312,7 @@ def _handle_watermark_presentation(job_id, input_path, all_inputs, output_dir, j
         if not image_bytes:
             raise EngineError("No watermark image found.", "QD-WATERMARK-IMG")
     out = output_dir / "watermarked.pptx"
-    watermark_presentation(input_path, out, wm_type, text, image_bytes, position, opacity, size, rotation, apply_to, selected_slides)
+    watermark_presentation(input_path, out, wm_type, text, image_bytes, position, opacity, size, rotation, apply_to, selected_slides, style)
     return {"output_size": out.stat().st_size, "filename": "watermarked.pptx", "output_format": "pptx"}
 
 

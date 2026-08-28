@@ -41,6 +41,7 @@ export default function WatermarkPresentationPage() {
   const [size, setSize] = useState('medium');
   const [rotation, setRotation] = useState(0);
   const [applyTo, setApplyTo] = useState<'all' | 'selected'>('all');
+  const [style, setStyle] = useState<'single' | 'tile'>('single');
   const [slides, setSlides] = useState('');
 
   const handleProcess = useCallback(() => {
@@ -57,12 +58,13 @@ export default function WatermarkPresentationPage() {
       size,
       rotation,
       apply_to: applyTo,
+      style,
     };
     if (applyTo === 'selected') {
       options.selected_slides = slides.split(/[,.\s]+/).map(Number).filter(Boolean);
     }
     run(files, options);
-  }, [docFile, wmType, text, wmImage, position, opacity, size, rotation, applyTo, slides, run]);
+  }, [docFile, wmType, text, wmImage, position, opacity, size, rotation, applyTo, style, slides, run]);
 
   const handleReset = () => {
     reset();
@@ -178,6 +180,18 @@ export default function WatermarkPresentationPage() {
                   ))}
                 </div>
               </div>
+            </div>
+
+            {/* Style */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-neutral-700">Style</label>
+              <div className="flex gap-2">
+                <button onClick={() => setStyle('single')} className={`flex-1 rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${style === 'single' ? 'border-primary/40 bg-primary/5 text-primary' : 'border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300'}`}>Single</button>
+                <button onClick={() => setStyle('tile')} className={`flex-1 rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${style === 'tile' ? 'border-primary/40 bg-primary/5 text-primary' : 'border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300'}`}>Tile (Fill Slide)</button>
+              </div>
+              {style === 'tile' && (
+                <p className="text-xs text-neutral-500">Repeats the watermark across the whole slide in a grid pattern.</p>
+              )}
             </div>
 
             <div className="space-y-2">

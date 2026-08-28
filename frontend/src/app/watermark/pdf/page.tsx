@@ -51,6 +51,7 @@ function WatermarkPage({ kind }: { kind: 'pdf' | 'presentation' }) {
   const [size, setSize] = useState('medium');
   const [rotation, setRotation] = useState(0);
   const [applyTo, setApplyTo] = useState<'all' | 'selected'>('all');
+  const [style, setStyle] = useState<'single' | 'tile'>('single');
   const [pages, setPages] = useState('');
 
   const handleProcess = useCallback(() => {
@@ -67,12 +68,13 @@ function WatermarkPage({ kind }: { kind: 'pdf' | 'presentation' }) {
       size,
       rotation,
       apply_to: applyTo,
+      style,
     };
     if (applyTo === 'selected') {
       options.selected_pages = pages.split(/[,.\s]+/).map(Number).filter(Boolean);
     }
     run(files, options);
-  }, [docFile, wmType, text, wmImage, position, opacity, size, rotation, applyTo, pages, run]);
+  }, [docFile, wmType, text, wmImage, position, opacity, size, rotation, applyTo, style, pages, run]);
 
   const handleReset = () => {
     reset();
@@ -194,6 +196,18 @@ function WatermarkPage({ kind }: { kind: 'pdf' | 'presentation' }) {
                   ))}
                 </div>
               </div>
+            </div>
+
+            {/* Style */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-neutral-700">Style</label>
+              <div className="flex gap-2">
+                <button onClick={() => setStyle('single')} className={`flex-1 rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${style === 'single' ? 'border-primary/40 bg-primary/5 text-primary' : 'border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300'}`}>Single</button>
+                <button onClick={() => setStyle('tile')} className={`flex-1 rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${style === 'tile' ? 'border-primary/40 bg-primary/5 text-primary' : 'border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300'}`}>Tile (Fill Page)</button>
+              </div>
+              {style === 'tile' && (
+                <p className="text-xs text-neutral-500">Repeats the watermark across the whole page in a grid pattern.</p>
+              )}
             </div>
 
             {/* Apply to */}
