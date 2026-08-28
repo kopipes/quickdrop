@@ -31,33 +31,27 @@ export function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function formatTime(ms: number): string {
-  if (ms < 1000) return `${ms} ms`;
-  return `${(ms / 1000).toFixed(1)} s`;
-}
-
 export function pollJobStatus(jobId: string, onUpdate: (status: JobStatus) => void, onDone: (status: JobStatus) => void, onError: (err: Error) => void): { cancel: () => void } {
-  const interval = setInterval(async () => {
+  let cancelled = false;
+  let timer: ReturnType<typeof setTimeout>;
+
+  const tick = async () => {
+    if (cancelled) return;
     try {
       const status = await getJobStatus(jobId);
+      if (cancelled) return;
       onUpdate(status);
       if (status.status === 'completed' || status.status === 'failed' || status.status === 'expired') {
-        clearInterval(interval);
         onDone(status);
+        return;
       }
+      timer = setTimeout(tick, 1000);
     } catch (e) {
-      clearInterval(interval);
+      if (cancelled) return;
       onError(e as Error);
     }
-  }, 1000);
-  return { cancel: () => clearInterval(interval) };
-}
-
-export function extension(mime: string): string[] {
-  const map: Record<string, string[]> = {
-    pdf: ['.pdf'],
-    pptx: ['.pptx'],
-    image: ['.jpg', '.jpeg', '.png', '.webp'],
   };
-  return map[mime] || [];
+
+  timer = setTimeout(tick, 1000);
+  return { cancel: () => { cancelled = true; clearTimeout(timer); } };
 }

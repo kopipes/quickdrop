@@ -4,7 +4,7 @@ import { useCallback, useRef, useState } from 'react';
 import { createJob, getDownloadUrl, pollJobStatus, formatBytes } from '@/lib/api';
 import type { JobStatus } from '@/lib/types';
 
-export type Stage = 'idle' | 'processing' | 'completed' | 'error';
+type Stage = 'idle' | 'processing' | 'completed' | 'error';
 
 export interface ProcessState {
   stage: Stage;

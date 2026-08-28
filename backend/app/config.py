@@ -22,6 +22,12 @@ CLEANUP_INTERVAL_SECONDS = 300
 
 MAX_ACTIVE_JOBS_PER_IP = 2
 
+ALLOWED_ORIGINS = [
+    o.strip()
+    for o in os.getenv("QUIKDROP_ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(",")
+    if o.strip()
+]
+
 JOB_TIMEOUT_SECONDS = 300
 CONCURRENCY_LIGHT = 4
 CONCURRENCY_MEDIUM = 2

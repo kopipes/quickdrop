@@ -23,11 +23,27 @@ def shrink_presentation(input_path: Path, output_path: Path, preset: str = "bala
     max_dim = settings["max_dim"]
     quality = settings["quality"]
 
+    MAX_ENTRY_SIZE = 60 * 1024 * 1024
+    MAX_TOTAL_SIZE = 350 * 1024 * 1024
+
     with zipfile.ZipFile(input_path, "r") as z:
         names = z.namelist()
         media_names = [n for n in names if n.startswith("ppt/media/") and not n.endswith("/")]
         data = {}
+        total = 0
         for name in names:
+            entry = z.getinfo(name)
+            if entry.file_size > MAX_ENTRY_SIZE:
+                raise EngineError(
+                    "This presentation contains an unusually large embedded file and cannot be processed safely.",
+                    "QD-PPTX-BOMB",
+                )
+            total += entry.file_size
+            if total > MAX_TOTAL_SIZE:
+                raise EngineError(
+                    "This presentation decompresses to an unsafe size. Please split it into smaller files.",
+                    "QD-PPTX-BOMB",
+                )
             data[name] = z.read(name)
 
     changed = 0

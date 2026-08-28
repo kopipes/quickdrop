@@ -1,5 +1,4 @@
 from typing import Optional, List, Tuple
-import io
 import zipfile
 from pathlib import Path
 
@@ -41,7 +40,7 @@ def compress_pdf(input_path: Path, output_path: Path, preset: str = "balanced"):
             "QD-PDF-PAGES",
         )
     try:
-        max_dimension = 2400 if preset == "maximum" else (1600 if preset == "balanced" else None)
+        max_dimension = 1400 if preset == "maximum" else (2400 if preset == "balanced" else None)
         quality = 60 if preset == "maximum" else (72 if preset == "balanced" else 88)
         changed = 0
         for page in doc:
@@ -65,11 +64,6 @@ def compress_pdf(input_path: Path, output_path: Path, preset: str = "balanced"):
                     changed += 1
                 except Exception:
                     continue
-                finally:
-                    try:
-                        pix = None
-                    except Exception:
-                        pass
         opts = _compress_params(preset)
         if not opts.get("linear"):
             opts["use_objstms"] = 1
@@ -156,8 +150,8 @@ def reorder_pdf(input_path: Path, output_path: Path, new_order: List[int]):
     doc = _open(input_path)
     try:
         n = doc.page_count
-        if not new_order or set(new_order) != set(range(1, n + 1)):
-            raise EngineError("The page order is invalid.", "QD-PDF-REORDER")
+        if not new_order or len(new_order) != n or set(new_order) != set(range(1, n + 1)):
+            raise EngineError("The page order is invalid. Every page must appear exactly once.", "QD-PDF-REORDER")
         new_doc = fitz.open()
         for p in new_order:
             new_doc.insert_pdf(doc, from_page=p - 1, to_page=p - 1)

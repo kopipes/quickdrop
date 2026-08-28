@@ -68,10 +68,14 @@ export default function QRPage() {
         const num = fields.whatsapp.trim().replace(/\D/g, '');
         return num ? `https://wa.me/${num}` : '';
       }
-      case 'wifi':
-        return fields.wifiName.trim()
-          ? `WIFI:T:${fields.wifiSec};S:${fields.wifiName.trim()};P:${fields.wifiPass};;`
-          : '';
+      case 'wifi': {
+        const ssid = fields.wifiName.trim();
+        if (!ssid) return '';
+        const esc = (s: string) => s.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/:/g, '\\:').replace(/"/g, '\\"');
+        const pw = fields.wifiPass ? `P:${esc(fields.wifiPass)};` : '';
+        const auth = fields.wifiSec === 'nopass' ? 'nopass' : fields.wifiSec;
+        return `WIFI:T:${auth};S:${esc(ssid)};${pw};`;
+      }
       default:
         return '';
     }

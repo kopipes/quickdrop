@@ -1,12 +1,13 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import DropZone from './DropZone';
 import FileList, { type SelectedFile } from './FileList';
 import ProcessingState from './ProcessingState';
 import ResultCard from './ResultCard';
 import ErrorCard from './ErrorCard';
 import { useProcess, formatBytes } from '@/lib/useProcess';
+import { getDownloadUrl } from '@/lib/api';
 
 interface ToolShellProps {
   tool: string;
@@ -186,11 +187,6 @@ export default function ToolShell({
   );
 }
 
-function getDownloadUrl(id: string, name: string) {
-  const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-  return `${base}/api/jobs/${id}/download/${name}`;
-}
-
 export function PageLayout({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
   return (
     <div className="mx-auto max-w-4xl px-4 pb-16 pt-10 sm:px-6 sm:pt-14">
@@ -202,5 +198,3 @@ export function PageLayout({ title, description, children }: { title: string; de
     </div>
   );
 }
-
-export { getDownloadUrl };

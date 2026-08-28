@@ -10,7 +10,7 @@ from app.routes.download import router as download_router
 from app.routes.health import router as health_router
 from app.jobs.worker import worker_loop
 from app.services.cleanup import cleanup_loop
-from app.config import TOOL_CATEGORIES
+from app.config import TOOL_CATEGORIES, ALLOWED_ORIGINS
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(levelname)s: %(message)s")
 logger = logging.getLogger("app")
@@ -36,7 +36,7 @@ app = FastAPI(title="QuikDrop API", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

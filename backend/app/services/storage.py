@@ -1,7 +1,6 @@
-from typing import Optional, List, Tuple
+from typing import Optional
 from pathlib import Path
 import shutil
-import uuid
 
 from app.config import TEMP_DIR
 
@@ -26,10 +25,28 @@ def save_upload(job_id: str, content: bytes, filename: str) -> Path:
     return path
 
 
-def save_output(job_id: str, content: bytes, filename: str) -> Path:
+async def save_upload_stream(job_id: str, upload, max_size: int) -> Path:
+    """Stream an UploadFile to disk, aborting with ValueError if it exceeds max_size."""
     dirs = ensure_job_dir(job_id)
-    path = dirs["output"] / filename
-    path.write_bytes(content)
+    ext = Path(upload.filename or "").suffix.lower()
+    existing = list(dirs["input"].glob(f"*{ext}"))
+    safe_name = f"input{len(existing) + 1}{ext}"
+    path = dirs["input"] / safe_name
+    total = 0
+    try:
+        with open(path, "wb") as out:
+            while True:
+                chunk = await upload.read(64 * 1024)
+                if not chunk:
+                    break
+                total += len(chunk)
+                if total > max_size:
+                    out.close()
+                    path.unlink(missing_ok=True)
+                    raise ValueError("file too large")
+                out.write(chunk)
+    finally:
+        await upload.close()
     return path
 
 
@@ -67,9 +84,3 @@ def cleanup_job(job_id: str):
     d = TEMP_DIR / "jobs" / job_id
     if d.exists():
         shutil.rmtree(d, ignore_errors=True)
-
-
-def cleanup_all_jobs():
-    for d in (TEMP_DIR / "jobs").iterdir():
-        if d.is_dir():
-            shutil.rmtree(d, ignore_errors=True)

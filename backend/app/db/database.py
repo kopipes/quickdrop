@@ -116,6 +116,7 @@ def update_job(job_id: str, **fields):
 
 
 def claim_next_job() -> Optional[dict]:
+    import datetime
     with db_cursor() as cur:
         row = cur.execute(
             "SELECT * FROM jobs WHERE status = 'queued' ORDER BY created_at ASC LIMIT 1"
@@ -123,14 +124,13 @@ def claim_next_job() -> Optional[dict]:
         if not row:
             return None
         job = dict(row)
-        import datetime
         cur.execute(
             "UPDATE jobs SET status = 'processing', started_at = ? WHERE id = ? AND status = 'queued'",
             (datetime.datetime.utcnow().isoformat(), job["id"]),
         )
-        cur.execute("SELECT * FROM jobs WHERE id = ?", (job["id"],))
-        claimed = cur.fetchone()
-        return dict(claimed) if claimed else None
+        if cur.rowcount == 0:
+            return None
+        return job
 
 
 def record_usage(job: dict):
@@ -178,8 +178,9 @@ def expire_jobs():
 def mark_interrupted():
     import datetime
     threshold = (datetime.datetime.utcnow() - datetime.timedelta(seconds=300)).isoformat()
+    now = datetime.datetime.utcnow().isoformat()
     with db_cursor() as cur:
         cur.execute(
-            "UPDATE jobs SET status = 'failed', error_code = 'QD-INTERRUPTED', error_message = 'Processing was interrupted by a server restart.' WHERE status = 'processing' AND started_at < ?",
-            (threshold,),
+            "UPDATE jobs SET status = 'failed', error_code = 'QD-INTERRUPTED', error_message = 'Processing was interrupted by a server restart.', completed_at = ? WHERE status = 'processing' AND started_at < ?",
+            (now, threshold),
         )

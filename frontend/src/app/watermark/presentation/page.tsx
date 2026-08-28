@@ -1,10 +1,11 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { PageLayout } from '@/components/ToolShell';
 import { MAX_PPTX, MAX_IMAGE } from '@/lib/tools';
 import DropZone from '@/components/DropZone';
 import { useProcess } from '@/lib/useProcess';
+import { getDownloadUrl } from '@/lib/api';
 import ProcessingState from '@/components/ProcessingState';
 import ResultCard from '@/components/ResultCard';
 import ErrorCard from '@/components/ErrorCard';
@@ -80,7 +81,7 @@ export default function WatermarkPresentationPage() {
 
   if (state.stage === 'completed' && state.job) {
     const first = state.job.output_files[0];
-    const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/jobs/${state.job.id}/download/${first?.name}`;
+    const url = getDownloadUrl(state.job.id, first?.name || 'result');
     return (
       <PageLayout title="Watermark Presentation" description="Add a text or image watermark to every slide.">
         <ResultCard title="Watermark applied" initialSize={docFile?.size || 0} finalSize={state.job.output_size || 0} downloadUrl={url} filename={first?.name || 'result'} onReset={handleReset} />

@@ -33,7 +33,7 @@ export default function ToolSearch({ autoFocus, placeholder = 'Search tools…',
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  useEffect(() => setActive(0), [query]);
+  useEffect(() => { setActive(0); }, [query]);
 
   const go = (path: string) => {
     setOpen(false);

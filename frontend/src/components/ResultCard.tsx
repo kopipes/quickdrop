@@ -1,6 +1,6 @@
 'use client';
 
-import { formatBytes, getDownloadUrl } from '@/lib/api';
+import { formatBytes } from '@/lib/api';
 
 interface ResultCardProps {
   title: string;

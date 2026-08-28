@@ -1,16 +1,19 @@
-from typing import Optional, List, Tuple
+import os
 import hashlib
 import json
+from typing import Optional, List, Tuple
 
 from fastapi import APIRouter, UploadFile, File, Form, Request
 from fastapi.responses import JSONResponse
 
 from app.db.database import create_job, get_conn
-from app.services.storage import save_upload
+from app.services.storage import save_upload_stream
 from app.config import (
     MAX_ACTIVE_JOBS_PER_IP, MAX_FILE_SIZE_PDF, MAX_FILE_SIZE_PPTX, MAX_FILE_SIZE_IMAGE,
     MAX_MERGE_FILES, TOOL_CATEGORIES,
 )
+
+CHUNK_SIZE = 64 * 1024  # 64 KB
 
 router = APIRouter(prefix="/api", tags=["jobs"])
 
@@ -114,12 +117,6 @@ async def create_job_endpoint(
     if not main_files:
         return JSONResponse({"detail": "No valid files uploaded for this tool."}, status_code=400)
 
-    for f in main_files + extra_files:
-        content = await f.read()
-        if len(content) > max_size:
-            return JSONResponse({"detail": f"{f.filename} exceeds the maximum allowed size."}, status_code=413)
-        f.content = content
-
     h = _ip_hash(request)
     if h and _active_jobs_for_ip(h) >= MAX_ACTIVE_JOBS_PER_IP:
         return JSONResponse({"detail": "You already have processing jobs running. Wait for them to finish."}, status_code=429)
@@ -132,6 +129,9 @@ async def create_job_endpoint(
                         params=json.dumps(params))
 
     for f in main_files + extra_files:
-        save_upload(job_id, f.content, f.filename)
+        try:
+            await save_upload_stream(job_id, f, max_size)
+        except ValueError:
+            return JSONResponse({"detail": f"{f.filename} exceeds the maximum allowed size."}, status_code=413)
 
     return JSONResponse({"job_id": job_id, "status": "queued"})

@@ -2,14 +2,10 @@ import asyncio
 import json
 import datetime
 import logging
-from pathlib import Path
 
 from app.db.database import claim_next_job, update_job, record_usage, log_event
-from app.services.storage import get_input_path, get_input_files, get_output_files, save_output, cleanup_job
-from app.config import (
-    TEMP_DIR, JOB_TIMEOUT_SECONDS, RETENTION_MINUTES, CONCURRENCY_LIGHT, CONCURRENCY_MEDIUM, CONCURRENCY_HEAVY,
-    TOOL_NAMES,
-)
+from app.services.storage import get_input_path, get_input_files, get_output_files
+from app.config import TEMP_DIR, RETENTION_MINUTES, CONCURRENCY_LIGHT, CONCURRENCY_MEDIUM, CONCURRENCY_HEAVY
 from app.engines.pdf_engine import (
     compress_pdf, merge_pdfs, split_pdf, remove_pages, rotate_pdf,
     image_to_pdf, pdf_to_images, reorder_pdf, make_zip, EngineError,
@@ -49,10 +45,6 @@ def _get_job_class(tool: str) -> str:
     return "light"
 
 
-def _get_concurrency_limit(job_class: str) -> int:
-    return {"light": CONCURRENCY_LIGHT, "medium": CONCURRENCY_MEDIUM, "heavy": CONCURRENCY_HEAVY}.get(job_class, 2)
-
-
 _semaphores = {
     "light": asyncio.Semaphore(CONCURRENCY_LIGHT),
     "medium": asyncio.Semaphore(CONCURRENCY_MEDIUM),
@@ -80,26 +72,20 @@ async def _process_job(job: dict):
 
             if result:
                 output_size = result.get("output_size", 0)
-                output_filename = result.get("filename", "result.pdf")
-                if isinstance(result, dict):
-                    output_size = result.get("output_size", 0)
-                    output_format = result.get("output_format", job.get("output_format"))
-                else:
-                    output_size = 0
-                    output_format = None
+                output_format = result.get("output_format", job.get("output_format"))
             else:
                 output_files = get_output_files(job_id)
                 output_size = sum(f.stat().st_size for f in output_files) if output_files else 0
                 output_format = output_files[0].suffix.lstrip(".") if output_files else None
 
-            completed_at = datetime.datetime.utcnow().isoformat()
+            completed_at = datetime.datetime.utcnow()
             created = datetime.datetime.fromisoformat(job["created_at"])
-            processing_time_ms = int((datetime.datetime.fromisoformat(completed_at) - created).total_seconds() * 1000)
-            expires_at = (datetime.datetime.utcnow() + datetime.timedelta(minutes=RETENTION_MINUTES)).isoformat()
+            processing_time_ms = int((completed_at - created).total_seconds() * 1000)
+            expires_at = (completed_at + datetime.timedelta(minutes=RETENTION_MINUTES)).isoformat()
 
             update_job(job_id,
                        status="completed",
-                       completed_at=completed_at,
+                       completed_at=completed_at.isoformat(),
                        expires_at=expires_at,
                        output_size=output_size,
                        output_format=output_format,

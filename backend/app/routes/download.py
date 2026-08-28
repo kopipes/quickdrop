@@ -1,11 +1,10 @@
-import datetime
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 
-from app.db.database import get_job, update_job
-from app.services.storage import get_output_files, output_path, cleanup_job
+from app.db.database import get_job
+from app.services.storage import get_output_files, output_path
 
 router = APIRouter(prefix="/api", tags=["jobs"])
 
@@ -38,7 +37,7 @@ async def download_file(job_id: str, filename: str):
     job = get_job(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found.")
-    if job["status"] not in ("completed", "processing"):
+    if job["status"] != "completed":
         raise HTTPException(status_code=404, detail="Result not available.")
 
     safe_name = Path(filename).name

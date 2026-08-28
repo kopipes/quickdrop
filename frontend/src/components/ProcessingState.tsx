@@ -5,8 +5,6 @@ interface ProcessingStateProps {
   subMessage?: string;
 }
 
-const MESSAGES = ['Uploading', 'Processing', 'Preparing download'];
-
 export default function ProcessingState({ message, subMessage }: ProcessingStateProps) {
   return (
     <div className="mx-auto max-w-sm space-y-4 text-center">

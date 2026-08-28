@@ -13,14 +13,4 @@ export interface JobStatus {
   output_files: { name: string; size: number; url: string }[];
 }
 
-export interface ToolCategory {
-  [slug: string]: string;
-}
-
-export interface ToolData {
-  categories: Record<string, ToolCategory>;
-}
-
-export type ToolId = string;
-
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';

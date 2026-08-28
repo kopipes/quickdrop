@@ -72,6 +72,11 @@ def watermark_pdf(input_path: Path, output_path: Path, watermark_type: str,
     try:
         n = doc.page_count
         target_pages = list(range(n)) if apply_to == "all" else [p - 1 for p in (selected_pages or []) if 1 <= p <= n]
+        if apply_to == "selected" and not target_pages:
+            raise EngineError(
+                "No valid pages selected. Check your page numbers and try again.",
+                "QD-WATERMARK-PAGES",
+            )
         for i in target_pages:
             page = doc[i]
             if watermark_type == "text":
@@ -89,13 +94,18 @@ def watermark_presentation(input_path: Path, output_path: Path, watermark_type: 
                            size: str = "medium", rotation: int = 0,
                            apply_to: str = "all", selected_slides: Optional[List[int]] = None):
     from pptx import Presentation
-    from pptx.util import Inches, Pt, Emu
+    from pptx.util import Pt, Emu
     from pptx.dml.color import RGBColor
     from pptx.enum.text import PP_ALIGN
 
     prs = Presentation(input_path)
     n = len(prs.slides)
     target_indices = list(range(n)) if apply_to == "all" else [i - 1 for i in (selected_slides or []) if 1 <= i <= n]
+    if apply_to == "selected" and not target_indices:
+        raise EngineError(
+            "No valid slides selected. Check your slide numbers and try again.",
+            "QD-WATERMARK-SLIDES",
+        )
 
     size_factors = {"small": 0.15, "medium": 0.25, "large": 0.4}
     factor = size_factors.get(size, 0.25)
