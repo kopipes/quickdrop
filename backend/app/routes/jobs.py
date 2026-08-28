@@ -39,6 +39,7 @@ TOOL_INPUT_TYPES = {
     "watermark_presentation": "pptx",
     "resize_image": "image",
     "contact_sheet": "image",
+    "images_to_pptx": "image",
     "make_it_smaller": "image",
 }
 

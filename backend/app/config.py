@@ -54,6 +54,7 @@ TOOL_CATEGORIES = {
         "shrink": "shrink_presentation",
         "to-pdf": "pptx_to_pdf",
         "to-images": "pptx_to_images",
+        "images-to-ppt": "images_to_pptx",
     },
     "watermark": {
         "pdf": "watermark_pdf",
