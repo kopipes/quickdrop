@@ -18,7 +18,7 @@ def ensure_job_dir(job_id: str) -> dict[str, Path]:
 def save_upload(job_id: str, content: bytes, filename: str) -> Path:
     dirs = ensure_job_dir(job_id)
     ext = Path(filename).suffix.lower()
-    existing = list(dirs["input"].glob(f"*{ext}"))
+    existing = list(dirs["input"].iterdir())
     safe_name = f"input{len(existing) + 1}{ext}"
     path = dirs["input"] / safe_name
     path.write_bytes(content)
@@ -26,10 +26,12 @@ def save_upload(job_id: str, content: bytes, filename: str) -> Path:
 
 
 async def save_upload_stream(job_id: str, upload, max_size: int) -> Path:
-    """Stream an UploadFile to disk, aborting with ValueError if it exceeds max_size."""
+    """Stream an UploadFile to disk, aborting with ValueError if it exceeds max_size.
+    Files are stored in submission order via a global sequence number (not grouped by
+    extension), so that get_input_files reliably returns upload order."""
     dirs = ensure_job_dir(job_id)
     ext = Path(upload.filename or "").suffix.lower()
-    existing = list(dirs["input"].glob(f"*{ext}"))
+    existing = list(dirs["input"].iterdir())
     safe_name = f"input{len(existing) + 1}{ext}"
     path = dirs["input"] / safe_name
     total = 0
@@ -75,9 +77,16 @@ def get_input_path(job_id: str, wanted_ext: Optional[str] = None) -> Optional[Pa
 
 def get_input_files(job_id: str) -> list[Path]:
     d = TEMP_DIR / "jobs" / job_id / "input"
-    if d.exists():
-        return sorted(d.iterdir())
-    return []
+    if not d.exists():
+        return []
+
+    def key(p: Path):
+        try:
+            return int(p.stem.replace("input", ""))
+        except ValueError:
+            return 0
+
+    return sorted(d.iterdir(), key=key)
 
 
 def cleanup_job(job_id: str):
