@@ -25,7 +25,7 @@ export default function ReorderPDFPage() {
       try {
         const pdfjs = await import('pdfjs-dist');
         const worker = await import('pdfjs-dist/build/pdf.worker.min.mjs?url');
-        pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
+        pdfjs.GlobalWorkerOptions.workerSrc = worker as unknown as string;
         const data = new Uint8Array(reader.result as ArrayBuffer);
         const doc = await pdfjs.getDocument({ data }).promise;
         const n = doc.numPages;
