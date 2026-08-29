@@ -1,6 +1,7 @@
 import io
 import zipfile
 from pathlib import Path
+from typing import Optional, List
 
 from PIL import Image
 
@@ -71,7 +72,8 @@ def make_zip(files: list[Path], zip_path: Path):
 
 def contact_sheet(image_paths: list[Path], output_path: Path, columns: int = 3,
                   rows: int = 4, spacing: int = 8, labels: bool = True,
-                  page_size: str = "a4", orientation: str = "portrait"):
+                  page_size: str = "a4", orientation: str = "portrait",
+                  filenames: Optional[List[str]] = None):
     """Arrange images into a grid on one or more PDF pages (contact sheet)."""
     import fitz
 
@@ -124,9 +126,10 @@ def contact_sheet(image_paths: list[Path], output_path: Path, columns: int = 3,
                     filename=str(path),
                 )
                 if labels:
+                    label = filenames[idx][:40] if filenames and idx < len(filenames) else path.stem[:40]
                     page.insert_text(
                         fitz.Point(margin + col * (cell_w + spacing_pt), y + draw_h + 10),
-                        path.stem[:40],
+                        label,
                         fontsize=8,
                         color=(0.25, 0.25, 0.25),
                     )

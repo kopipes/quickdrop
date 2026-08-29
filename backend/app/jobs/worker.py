@@ -346,10 +346,11 @@ def _handle_contact_sheet(job_id, input_path, all_inputs, output_dir, job):
     labels = params.get("labels", True)
     page_size = params.get("page_size", "a4")
     orientation = params.get("orientation", "portrait")
+    filenames = params.get("filenames") or None
     if len(all_inputs) < 1:
         raise EngineError("Please upload at least one image.", "QD-SHEET-NONE")
     out = output_dir / "contact-sheet.pdf"
-    contact_sheet(all_inputs, out, columns, rows, spacing, labels, page_size, orientation)
+    contact_sheet(all_inputs, out, columns, rows, spacing, labels, page_size, orientation, filenames)
     return {"output_size": out.stat().st_size, "filename": "contact-sheet.pdf", "output_format": "pdf"}
 
 

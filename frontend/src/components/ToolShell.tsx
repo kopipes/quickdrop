@@ -23,7 +23,7 @@ interface ToolShellProps {
   processingLabel?: string;
   resultTitle: string;
   options?: Record<string, unknown>;
-  buildOptions?: () => Record<string, unknown>;
+  buildOptions?: (files: File[]) => Record<string, unknown>;
   onValidate?: (files: File[]) => string | null;
   autoProcess?: boolean;
 }
@@ -74,7 +74,7 @@ export default function ToolShell({
         const next = [...selected, ...toAdd].map((s) => s.file);
         const validation = onValidate?.(next) ?? null;
         if (validation) setError(validation);
-        else run(next, buildOptions ? buildOptions() : options);
+        else run(next, buildOptions ? buildOptions(next) : options);
       }
     },
     [selected, maxSize, maxFiles, autoProcess, onValidate, run, buildOptions, options],
@@ -103,7 +103,7 @@ export default function ToolShell({
       return;
     }
     setError(null);
-    run(selected.map((s) => s.file), buildOptions ? buildOptions() : options);
+    run(selected.map((s) => s.file), buildOptions ? buildOptions(selected.map((s) => s.file)) : options);
   }, [selected, run, buildOptions, options, onValidate]);
 
   const handleReset = useCallback(() => {

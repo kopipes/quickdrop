@@ -26,7 +26,7 @@ export default function ContactSheetPage() {
       tool="contact_sheet" title="Contact Sheet" description="Arrange multiple images into a printable PDF grid."
       accept=".jpg,.jpeg,.png,.webp" multiple maxSize={MAX_IMAGE} maxFiles={500}
       resultTitle="Contact sheet ready" processLabel="Create Contact Sheet"
-      buildOptions={() => ({ columns: grid.cols, rows: grid.rows, spacing: 8, labels: true, page_size: pg, orientation })}
+      buildOptions={(files) => ({ columns: grid.cols, rows: grid.rows, spacing: 8, labels: true, page_size: pg, orientation, filenames: files.map((f) => f.name.replace(/\.[^.]+$/, '')) })}
       settings={
         <div className="space-y-4">
           <div className="space-y-2">
