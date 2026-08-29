@@ -64,7 +64,41 @@ def compress_image(input_path: Path, output_path: Path, quality: int = 70, max_d
             im.save(output_path, format="PNG", optimize=True)
 
 
-def make_zip(files: list[Path], zip_path: Path):
+def convert_image(input_path: Path, output_path: Path, fmt: str = "jpg",
+                  quality: int = 85, max_dimension: int = 0):
+    """Convert image to a different format with optional quality and resize."""
+    FORMAT_MAP = {
+        "jpg": ("JPEG", "RGB"),
+        "jpeg": ("JPEG", "RGB"),
+        "png": ("PNG", "RGBA"),
+        "webp": ("WEBP", "RGBA"),
+        "gif": ("GIF", "P"),
+        "bmp": ("BMP", "RGB"),
+        "tiff": ("TIFF", "RGB"),
+    }
+    fmt = fmt.lower().lstrip(".")
+    pil_fmt, mode = FORMAT_MAP.get(fmt, ("JPEG", "RGB"))
+
+    with Image.open(input_path) as im:
+        if max_dimension and max(im.width, im.height) > max_dimension:
+            scale = max_dimension / max(im.width, im.height)
+            im = im.resize((max(1, int(im.width * scale)), max(1, int(im.height * scale))), Image.LANCZOS)
+        if pil_fmt in ("JPEG", "BMP", "TIFF") and im.mode in ("RGBA", "P", "LA"):
+            im = im.convert("RGB")
+        elif pil_fmt == "PNG" and im.mode not in ("RGBA", "RGB", "P", "L"):
+            im = im.convert("RGBA")
+        elif pil_fmt == "GIF":
+            im = im.convert("P")
+        elif pil_fmt == "WEBP":
+            if im.mode not in ("RGB", "RGBA"):
+                im = im.convert("RGBA")
+        kwargs: dict = {}
+        if pil_fmt in ("JPEG", "WEBP"):
+            kwargs["quality"] = quality
+            kwargs["optimize"] = True
+        elif pil_fmt == "PNG":
+            kwargs["optimize"] = True
+        im.save(output_path, format=pil_fmt, **kwargs)
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
         for f in files:
             zf.write(f, arcname=f.name)
@@ -139,3 +173,9 @@ def contact_sheet(image_paths: list[Path], output_path: Path, columns: int = 3,
     doc.close()
     if output_path.stat().st_size == 0:
         raise EngineError("Failed to build the contact sheet.", "QD-SHEET-OUT")
+
+
+def make_zip(files: list[Path], zip_path: Path):
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+        for f in files:
+            zf.write(f, arcname=f.name)

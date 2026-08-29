@@ -12,7 +12,7 @@ from app.engines.pdf_engine import (
 )
 from app.engines.presentation_engine import shrink_presentation, pptx_to_pdf, pptx_to_images
 from app.engines.watermark_engine import watermark_pdf, watermark_presentation
-from app.engines.image_engine import resize_image, contact_sheet
+from app.engines.image_engine import resize_image, contact_sheet, make_zip, convert_image
 from app.engines.pptx_engine import images_to_pptx
 from app.engines.favicon_engine import generate_favicon
 from app.engines.smaller_engine import make_it_smaller, resolve_target
@@ -133,6 +133,7 @@ def _register_handlers():
     _register("contact_sheet", _handle_contact_sheet)
     _register("images_to_pptx", _handle_images_to_pptx)
     _register("favicon_generator", _handle_favicon_generator)
+    _register("image_convert", _handle_image_convert)
     _register("make_it_smaller", _handle_make_it_smaller)
 
 
@@ -367,6 +368,29 @@ def _handle_favicon_generator(job_id, input_path, all_inputs, output_dir, job):
         raise EngineError("No image found.", "QD-FAVICON-NONE")
     zip_path = generate_favicon(input_path, output_dir)
     return {"output_size": zip_path.stat().st_size, "filename": "favicon-pack.zip", "output_format": "zip"}
+
+
+def _handle_image_convert(job_id, input_path, all_inputs, output_dir, job):
+    params = _params(job)
+    fmt = params.get("format", "jpg").lower().lstrip(".")
+    quality = params.get("quality", 85)
+    max_dimension = params.get("max_dimension", 0)
+    if not all_inputs:
+        raise EngineError("No images found.", "QD-UPLOAD")
+    ext_map = {"jpg": ".jpg", "jpeg": ".jpg", "png": ".png", "webp": ".webp",
+               "gif": ".gif", "bmp": ".bmp", "tiff": ".tiff"}
+    out_ext = ext_map.get(fmt, ".jpg")
+    converted = []
+    for path in all_inputs:
+        stem = Path(path).stem
+        out = output_dir / f"{stem}{out_ext}"
+        convert_image(path, out, fmt, quality, max_dimension)
+        converted.append(out)
+    if len(converted) == 1:
+        return {"output_size": converted[0].stat().st_size, "filename": converted[0].name, "output_format": fmt}
+    zip_path = output_dir / "converted.zip"
+    make_zip(converted, zip_path)
+    return {"output_size": zip_path.stat().st_size, "filename": "converted.zip", "output_format": "zip"}
 
 
 def _handle_make_it_smaller(job_id, input_path, all_inputs, output_dir, job):
